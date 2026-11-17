@@ -23,6 +23,12 @@ This file says **who builds what** and **how we avoid merge conflicts**.
 8. **DTOs are copied, not shared.** If you need another service's object, create your own DTO inside your service. No shared module.
 9. **Only push code that compiles.** Run your service once before pushing.
 
+### Branch workflow
+- Each person works on their own branch (`shreeya-dev`, and Vaidehi's own branch). Never commit directly to `main`.
+- When a step works: push your branch → open a **pull request into `main`** on GitHub → merge it.
+- After the other person merges, bring their work into your branch: `git pull origin main` (while on your branch).
+- Because each person only touches their own folders, PRs merge cleanly.
+
 ---
 
 ## Handoff points
