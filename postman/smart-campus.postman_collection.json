@@ -1,0 +1,341 @@
+{
+	"info": {
+		"_postman_id": "a9d7b420-53bc-42b7-a36c-9c98be8e1234",
+		"name": "Smart Campus System",
+		"description": "Comprehensive integration test suite for Smart Campus Microservices via API Gateway (port 8080).\nCovers all 9 integration scenarios defined in WORK_PLAN.md.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "01 - Scenario 1: Get All Residents (3 seeded students)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/residents",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"residents"
+					]
+				},
+				"description": "Returns 3 seeded residents: Aarav Sharma (A-101, active), Diya Patel (A-102, active), and Rohan Iyer (B-205, inactive)."
+			},
+			"response": []
+		},
+		{
+			"name": "02 - Scenario 2: Create Pass for Host 1 (Active -> APPROVED)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"visitorName\": \"Vikram Malhotra\",\n  \"visitorPhone\": \"9876543210\",\n  \"purpose\": \"Group Project Discussion\",\n  \"hostId\": 1\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/visitors/passes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"visitors",
+						"passes"
+					]
+				},
+				"description": "Host 1 is active, so pass status should be APPROVED and a PASS_CREATED log should be recorded."
+			},
+			"response": []
+		},
+		{
+			"name": "03 - Scenario 2 Verification: Check Security Logs for PASS_CREATED",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/security/logs",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"security",
+						"logs"
+					]
+				},
+				"description": "Verifies that PASS_CREATED log was recorded by security-alert-service."
+			},
+			"response": []
+		},
+		{
+			"name": "04 - Scenario 3: Create Pass for Host 3 (Inactive -> REJECTED)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"visitorName\": \"Neha Sen\",\n  \"visitorPhone\": \"9876543211\",\n  \"purpose\": \"Deliver Books\",\n  \"hostId\": 3\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/visitors/passes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"visitors",
+						"passes"
+					]
+				},
+				"description": "Host 3 (Rohan Iyer) is inactive, so pass status should be REJECTED and UNAUTHORIZED_HOST_ATTEMPT alert triggered."
+			},
+			"response": []
+		},
+		{
+			"name": "05 - Scenario 3 Verification: Check Security Alerts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/security/alerts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"security",
+						"alerts"
+					]
+				},
+				"description": "Verifies that UNAUTHORIZED_HOST_ATTEMPT alert with severity HIGH is created."
+			},
+			"response": []
+		},
+		{
+			"name": "06 - Scenario 4: Create Pass for Host 99 (Non-existent -> REJECTED)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"visitorName\": \"Ananya Roy\",\n  \"visitorPhone\": \"9876543212\",\n  \"purpose\": \"Campus Visit\",\n  \"hostId\": 99\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/visitors/passes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"visitors",
+						"passes"
+					]
+				},
+				"description": "Host 99 does not exist (404 from resident-service), so pass status is REJECTED and UNAUTHORIZED_HOST_ATTEMPT alert generated."
+			},
+			"response": []
+		},
+		{
+			"name": "07 - Scenario 5: Gate Check-in on Pass 1 (CHECKED_IN)",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/visitors/passes/1/checkin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"visitors",
+						"passes",
+						"1",
+						"checkin"
+					]
+				},
+				"description": "Transitions pass 1 from APPROVED to CHECKED_IN, records checkInTime and CHECK_IN event."
+			},
+			"response": []
+		},
+		{
+			"name": "08 - Scenario 5 Verification: Check Security Logs for CHECK_IN",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/security/logs",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"security",
+						"logs"
+					]
+				},
+				"description": "Confirms CHECK_IN log exists in security-alert-service."
+			},
+			"response": []
+		},
+		{
+			"name": "09 - Scenario 6: Room Security Audit for A-101 (Resident + Active Visitor)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/security/audit/room/A-101",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"security",
+						"audit",
+						"room",
+						"A-101"
+					]
+				},
+				"description": "security-alert-service calls resident-service for A-101 (Aarav, hostId=1) and visitor-pass-service for active passes. Returns resident details and Vikram Malhotra in activeVisitors."
+			},
+			"response": []
+		},
+		{
+			"name": "10 - Scenario 7: Gate Check-out on Pass 1 (CHECKED_OUT)",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/visitors/passes/1/checkout",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"visitors",
+						"passes",
+						"1",
+						"checkout"
+					]
+				},
+				"description": "Transitions pass 1 from CHECKED_IN to CHECKED_OUT, records checkOutTime and CHECK_OUT event."
+			},
+			"response": []
+		},
+		{
+			"name": "11 - Scenario 7 Verification: Check Security Logs for CHECK_OUT",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/security/logs",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"security",
+						"logs"
+					]
+				},
+				"description": "Confirms CHECK_OUT log exists in security-alert-service."
+			},
+			"response": []
+		},
+		{
+			"name": "12 - Scenario 8: Room Security Audit for A-101 (Empty Active Visitors)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/security/audit/room/A-101",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"security",
+						"audit",
+						"room",
+						"A-101"
+					]
+				},
+				"description": "Re-checks room A-101 after checkout. activeVisitors array must now be empty."
+			},
+			"response": []
+		},
+		{
+			"name": "13 - Scenario 9: Check-in on REJECTED Pass 2 (Expect 400 Bad Request)",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/visitors/passes/2/checkin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"visitors",
+						"passes",
+						"2",
+						"checkin"
+					]
+				},
+				"description": "Pass 2 is REJECTED. Check-in must be blocked and return HTTP 400 Bad Request."
+			},
+			"response": []
+		},
+		{
+			"name": "14 - Extra: Get All Passes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/visitors/passes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"visitors",
+						"passes"
+					]
+				},
+				"description": "Lists all visitor passes created in the system."
+			},
+			"response": []
+		},
+		{
+			"name": "15 - Extra: Get Active Passes for Host 1",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/visitors/passes/active/host/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"visitors",
+						"passes",
+						"active",
+						"host",
+						"1"
+					]
+				},
+				"description": "Tests Handoff H3 endpoint directly via gateway."
+			},
+			"response": []
+		}
+	]
+}
