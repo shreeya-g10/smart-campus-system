@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: GATEWAY-SERVICE
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: resident-service
+              uri: lb://RESIDENT-SERVICE
+              predicates:
+                - Path=/residents/**
+            - id: visitor-pass-service
+              uri: lb://VISITOR-PASS-SERVICE
+              predicates:
+                - Path=/visitors/**
+            - id: security-alert-service
+              uri: lb://SECURITY-ALERT-SERVICE
+              predicates:
+                - Path=/security/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:3000/eureka/}
+  instance:
+    prefer-ip-address: true
